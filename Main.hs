@@ -14,7 +14,7 @@
 
 module Main
     ( main
-    
+
     ) where
 
       import Control.Concurrent.STM
@@ -28,6 +28,7 @@ module Main
       mkYesod "GetIp" [parseRoutes|
       / HomeR GET
       /set/#Text SetR POST
+      /set SetipR POST
       |]
 
       instance Yesod GetIp where
@@ -37,6 +38,16 @@ module Main
         GetIp ip <- getYesod
         i <- liftIO $ atomically $ readTVar ip
         return $ pack i
+
+      postSetipR :: Handler Text
+      postSetipR = do
+        ip <- lookupPostParam "ipaddr"
+        case ip of
+          Just ip -> do
+            GetIp i <- getYesod
+            liftIO $ atomically $ writeTVar i $ unpack ip
+            return "0"
+          _ -> return "1"
 
       postSetR :: Text -> Handler Text
       postSetR ip = do
